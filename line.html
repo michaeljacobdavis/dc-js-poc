@@ -86,8 +86,8 @@
         });
 
 
-    table.width(null)
-            .height(null)
+    table.width(document.body.clientWidth)
+        .height(500)
         .dimension(visitsDimension)
         .group(function(d) {
             return "Visits"
@@ -103,13 +103,12 @@
         .order(d3.ascending);
 
     line
-        .width(null)
-        .height(null)
+        .width(document.body.clientWidth)
+        .height(400)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
         .dimension(timeDimension)
         .group(visitsPerDay)
         .transitionDuration(500)
-        .brushOn(false)
         .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
             return d.timestamp;
         })))
@@ -118,8 +117,8 @@
         .xAxis().tickFormat();
 
     bar
-        .width(null)
-        .height(null)
+        .width(document.body.clientWidth)
+        .height(200)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
         .dimension(timelineDimension)
         .group(visitsPerDay)
@@ -140,6 +139,16 @@
     });
 
     dc.renderAll();
+
+    window.addEventListener('resize', function () {
+        var lineFilters = line.filters()[0];
+        dc.filterAll();
+        bar.width(document.body.clientWidth).transitionDuration(0);
+        line.width(document.body.clientWidth).transitionDuration(0);
+        table.width(document.body.clientWidth).transitionDuration(0);
+        line.filter(lineFilters);
+        dc.renderAll();
+    });
 
 
 </script>
