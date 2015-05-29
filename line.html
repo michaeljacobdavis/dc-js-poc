@@ -14,6 +14,7 @@
 <script type="text/javascript" src="/node_modules/d3/d3.js"></script>
 <script type="text/javascript" src="/node_modules/crossfilter/crossfilter.js"></script>
 <script type="text/javascript" src="/node_modules/dc/dc.js"></script>
+<script type="text/javascript" src="/node_modules/d3-tip/index.js"></script>
 <script type="text/javascript">
     var num = 300;
     var experiments = [];
@@ -77,6 +78,14 @@
         return d.visits;
     });
 
+    var barTip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10, 0])
+        .html(function (d) {
+            return '<span style="color: #f0027f">TEST</span>';
+        });
+
+
     table.width(null)
             .height(null)
         .dimension(visitsDimension)
@@ -114,6 +123,7 @@
         .margins({top: 10, right: 10, bottom: 20, left: 40})
         .dimension(timelineDimension)
         .group(visitsPerDay)
+        .brushOn(false)
         .transitionDuration(500)
         .centerBar(true)
         .gap(65)
@@ -122,6 +132,12 @@
         })))
         .elasticY(true)
         .xAxis().ticks(4).tickFormat();
+
+    bar.on('renderlet', function (chart) {
+        chart.selectAll(".bar").call(barTip);
+        chart.selectAll(".bar").on('mouseover', barTip.show)
+            .on('mouseout', barTip.hide); 
+    });
 
     dc.renderAll();
 
