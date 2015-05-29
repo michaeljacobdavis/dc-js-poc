@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>dc.js - Line Chart Example</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/node_modules/dc/dc.css"/>
+</head>
+<body>
+
+<div id="line"></div>
+<div id="bar"></div>
+<div id="table"></div>
+
+<script type="text/javascript" src="/node_modules/d3/d3.js"></script>
+<script type="text/javascript" src="/node_modules/crossfilter/crossfilter.js"></script>
+<script type="text/javascript" src="/node_modules/dc/dc.js"></script>
+<script type="text/javascript">
+    var num = 300;
+    var experiments = [];
+    var step = 86400000;
+    var start = 1383289200000;
+
+    while (num) {
+        experiments.unshift({
+            timestamp: new Date(start = start + step),
+            visits: Math.floor(Math.random() * 200) + 100,
+            visitors: Math.floor(Math.random() * 150) + 100,
+            productViews: Math.floor(Math.random() * 120) + 50,
+            addToCarts: Math.floor(Math.random() * 75) + 30,
+            checkouts: Math.floor(Math.random() * 35) + 0
+        });
+
+        num--;
+    }
+
+    var bar = dc.barChart("#bar");
+    var line = dc.lineChart("#line");
+    var table = dc.dataTable("#table");
+
+    // Crossfilter
+    var ndx = crossfilter(experiments);
+
+    // Dimensions
+    var visitsDimension = ndx.dimension(function(d) {
+        return +d.visits;
+    });
+    var visitorsDimension = ndx.dimension(function(d) {
+        return +d.visitors;
+    });
+    var timeDimension = ndx.dimension(function(d) {
+        return d3.time.day(d.timestamp);
+    });
+    var timelineDimension = ndx.dimension(function(d) {
+        return d3.time.day(d.timestamp);
+    });
+    var addToCartsDimension = ndx.dimension(function(d) {
+        return +d.addToCarts;
+    });
+    var checkoutsDimension = ndx.dimension(function(d) {
+        return +d.checkouts;
+    });
+    var productViewsDimension = ndx.dimension(function(d) {
+        return +d.productViews;
+    });
+
+    // Groups
+    var visitsGroup = visitsDimension.group();
+    var visitorsGroup = visitorsDimension.group();
+    var timeGroup = timeDimension.group();
+    var visitsTimeGroup = timeDimension.group();
+    var addToCartsGroup = addToCartsDimension.group();
+    var checkoutsGroup = checkoutsDimension.group();
+    var productViewsGroup = productViewsDimension.group();
+
+
+    var visitsPerDay = timeDimension.group().reduceSum(function (d) {
+        return d.visits;
+    });
+
+    table.width(null)
+            .height(null)
+        .dimension(visitsDimension)
+        .group(function(d) {
+            return "Visits"
+        })
+        .columns([
+            function(d) {
+                return d.visits;
+            }
+        ])
+        .sortBy(function(d){
+            return d.visits;
+        })
+        .order(d3.ascending);
+
+    line
+        .width(null)
+        .height(null)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(timeDimension)
+        .group(visitsPerDay)
+        .transitionDuration(500)
+        .brushOn(false)
+        .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
+            return d.timestamp;
+        })))
+        .elasticY(true)
+        .elasticX(true)
+        .xAxis().tickFormat();
+
+    bar
+        .width(null)
+        .height(null)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(timelineDimension)
+        .group(visitsPerDay)
+        .transitionDuration(500)
+        .centerBar(true)
+        .gap(65)
+        .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
+            return d.timestamp;
+        })))
+        .elasticY(true)
+        .xAxis().ticks(4).tickFormat();
+
+    dc.renderAll();
+
+
+</script>
+
+</body>
+</html>
+
