@@ -4,6 +4,7 @@
     <title>dc.js - Line Chart Example</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="/node_modules/dc/dc.css"/>
+    <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
 </head>
 <body>
 
@@ -49,9 +50,6 @@
         return +d.visitors;
     });
     var timeDimension = ndx.dimension(function(d) {
-        return d3.time.day(d.timestamp);
-    });
-    var timelineDimension = ndx.dimension(function(d) {
         return d3.time.day(d.timestamp);
     });
     var addToCartsDimension = ndx.dimension(function(d) {
@@ -109,6 +107,8 @@
         .dimension(timeDimension)
         .group(visitsPerDay)
         .transitionDuration(500)
+        .brushOn(false)
+        .rangeChart(bar)
         .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
             return d.timestamp;
         })))
@@ -118,18 +118,16 @@
 
     bar
         .width(document.body.clientWidth)
-        .height(200)
+        .height(50)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
-        .dimension(timelineDimension)
-        .group(visitsPerDay)
-        .brushOn(false)
+        .dimension(checkoutsDimension)
+        .group(checkoutsGroup)
         .transitionDuration(500)
         .centerBar(true)
-        .gap(65)
+        .gap(10)
         .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
             return d.timestamp;
         })))
-        .elasticY(true)
         .xAxis().ticks(4).tickFormat();
 
     bar.on('renderlet', function (chart) {
