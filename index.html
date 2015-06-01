@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>dc.js - Line Chart Example</title>
+    <title>POC</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="/node_modules/dc/dc.css"/>
     <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
@@ -17,7 +17,7 @@
 <script type="text/javascript" src="/node_modules/dc/dc.js"></script>
 <script type="text/javascript" src="/node_modules/d3-tip/index.js"></script>
 <script type="text/javascript">
-    var num = 300;
+    var num = 365 * 2;
     var experiments = [];
     var step = 86400000;
     var start = 1383289200000;
@@ -76,7 +76,7 @@
         return d.visits;
     });
 
-    var barTip = d3.tip()
+    var lineTip = d3.tip()
         .attr('class', 'd3-tip')
         .offset([-10, 0])
         .html(function (d) {
@@ -112,40 +112,45 @@
         .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
             return d.timestamp;
         })))
-        .elasticY(true)
-        .elasticX(true)
         .xAxis().tickFormat();
+
+    line.on('renderlet', function (chart) {
+        chart.selectAll('.dot').call(lineTip);
+        chart.selectAll('.dot')
+            .on('mouseover.tip', lineTip.show)
+            .on('mouseout.tip', lineTip.hide); 
+    });
 
     bar
         .width(document.body.clientWidth)
         .height(50)
         .margins({top: 10, right: 10, bottom: 20, left: 40})
-        .dimension(checkoutsDimension)
-        .group(checkoutsGroup)
+        .dimension(timeDimension)
+        .group(visitsPerDay)
         .transitionDuration(500)
         .centerBar(true)
-        .gap(10)
         .x(d3.time.scale().domain(d3.extent(experiments, function (d) {
             return d.timestamp;
         })))
         .xAxis().ticks(4).tickFormat();
 
-    bar.on('renderlet', function (chart) {
-        chart.selectAll(".bar").call(barTip);
-        chart.selectAll(".bar").on('mouseover', barTip.show)
-            .on('mouseout', barTip.hide); 
+    bar.on('filtered', function(chart){
+        dc.events.trigger(function(){
+            line.focus(chart.filter());
+        });
     });
 
     dc.renderAll();
 
     window.addEventListener('resize', function () {
-        var lineFilters = line.filters()[0];
-        dc.filterAll();
+        var filter = bar.filter();
         bar.width(document.body.clientWidth).transitionDuration(0);
         line.width(document.body.clientWidth).transitionDuration(0);
         table.width(document.body.clientWidth).transitionDuration(0);
-        line.filter(lineFilters);
         dc.renderAll();
+        if (filter) {
+            bar.focus(filter);
+        }
     });
 
 
